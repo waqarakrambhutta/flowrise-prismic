@@ -1,11 +1,31 @@
-import React from "react";
+import { type Metadata } from "next";
+import { notFound } from "next/navigation";
+import { asImageSrc } from "@prismicio/client";
+import { SliceZone } from "@prismicio/react";
 
-const page = () => {
-  return (
-    <div>
-      <h1 className="text-5xl font-nunito font-bold">Hello World</h1>
-    </div>
-  );
+import { createClient } from "@/prismicio";
+import { components } from "@/slices";
+
+const page = async () => {
+  const client = createClient();
+  const page = await client.getSingle("homepage").catch(() => notFound());
+
+  // return <div>{page.data.title}</div>;
+
+  return <SliceZone slices={page.data.slices} components={components} />;
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const client = createClient();
+  const page = await client.getSingle("homepage").catch(() => notFound());
+
+  return {
+    title: page.data.meta_title,
+    description: page.data.meta_description,
+    openGraph: {
+      images: [{ url: asImageSrc(page.data.meta_image) ?? "" }],
+    },
+  };
+}
 
 export default page;
